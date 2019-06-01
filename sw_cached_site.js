@@ -1,17 +1,16 @@
 //caching the entire site
 const cacheName = 'v2';
 
-
 //call install event
 self.addEventListener('install', (event) => {
     console.log('service Worker installed');
-    //now we do not set cache on install event
+    //now we do not set cache on install event - just in fetch event we will add each element
 });
 
 //call activated event
 //here we clean old cache - if any
 self.addEventListener('activate', (event) => {
-    console.log('service Worker activated - rmove old caches');
+    console.log('service Worker activated - remove old caches');
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
@@ -24,18 +23,17 @@ self.addEventListener('activate', (event) => {
             )
         })
     )
-
 });
 
-//call fatch event -offline
+//call fetch event -offline
 self.addEventListener('fetch', event => {
     console.log('service worker is fetching');
-    //if we are offline ctach and respond form cache
+    //if we are offline catch and respond form cache
     //but when we are online we make a copy of response to the cache - better way
     event.respondWith(
         fetch(event.request)
         .then(res => {
-            //clon the respnse
+            //clone the response
             const resClone = res.clone();
             //open the Cache - browser
             caches.open(cacheName)
