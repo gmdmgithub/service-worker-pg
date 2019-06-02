@@ -12,7 +12,7 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(cacheName)
         .then(cache => {
-            cache.addAll(cacheAssets);
+            cache.addAll(cacheAssets);//main function - addAll
             console.log('cacheting files', cacheAssets);
         })
         .then(() => {
@@ -25,12 +25,12 @@ self.addEventListener('install', (event) => {
     );
 });
 
-//call activated event
-//here we clean old cache - if any
+//call activated event here we clean old cache - if any exists
 self.addEventListener('activate', (event) => {
     console.log('service Worker activated - remove old caches');
     event.waitUntil(
-        caches.keys().then(cacheNames => {  ///we remove all other than current cache
+        caches.keys()
+        .then(cacheNames => {  ///we remove all other than current cache
             return Promise.all(
                 cacheNames.map(cache => { //possible better use of filter
                     if (cache !== cacheName) {
@@ -48,7 +48,7 @@ self.addEventListener('fetch', event => {
     console.log('service worker is fetching');
     //if we are offline cache and respond form cache
     event.respondWith(
-        fetch(event.request) //in this place we just fetch the request
+        fetch(event.request) //in this place we just fetch the request - in case of problem (catch on promise) take from cache
         .catch(() => 
             caches.match(event.request)));/// in case of error load
 });
