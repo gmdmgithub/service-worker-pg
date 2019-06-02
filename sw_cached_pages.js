@@ -43,12 +43,29 @@ self.addEventListener('activate', (event) => {
     )
 });
 
-//call fetch event -offline
-self.addEventListener('fetch', event => {
-    console.log('service worker is fetching');
-    //if we are offline cache and respond form cache
+self.addEventListener('fetch', differentApproach);
+
+// //call fetch event -offline
+// self.addEventListener('fetch', event => {
+//     console.log('service worker is fetching');
+//     //if we are offline cache and respond form cache
+//     event.respondWith(
+//         fetch(event.request) //in this place we just fetch the request - in case of problem (catch on promise) take from cache
+//         .catch(() => 
+//             caches.match(event.request)));/// in case of error load
+// });
+
+
+//call fetch event -always - if not in cache take from request!!
+function differentApproach(event){
+    console.log("service worker fetching - approach with first checking cache (version is important!!)")
+
+    //check cache and respond form cache
     event.respondWith(
-        fetch(event.request) //in this place we just fetch the request - in case of problem (catch on promise) take from cache
-        .catch(() => 
-            caches.match(event.request)));/// in case of error load
-});
+        caches.match(event.request)
+        .then(cacheRequest =>{
+            console.log('response is here');
+            return cacheRequest || fetch(event.request);
+        })
+    )
+}
