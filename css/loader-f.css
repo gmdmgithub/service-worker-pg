@@ -1,0 +1,6 @@
+.loader{
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    /* animation: rotate 3s linear infinite; */
+}

@@ -1,10 +1,29 @@
 //caching the entire site
 const cacheName = 'v2';
 
+const staticCache = 's_v1';
+
+const cacheAssets = [
+    'fallback.html',
+    '/css/style.css', '/js/main.js'
+];
+
 //call install event
 self.addEventListener('install', (event) => {
-    console.log('service Worker installed');
+    console.log('service Worker install');
     //now we do not set cache on install event - just in fetch event we will add each element
+
+    //but the exception for the fallback
+    event.waitUntil(
+        caches.open(staticCache)
+        .then(cache => {
+            cache.addAll(cacheAssets); //main function - addAll
+        })
+        .catch(err => {
+            console.log('Problem occurs', err);
+        })
+    );
+
 });
 
 //call activated event
@@ -15,7 +34,7 @@ self.addEventListener('activate', (event) => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cache => { //possible better use of filter
-                    if (cache !== cacheName) {
+                    if (cache !== cacheName && cache !== staticCache) {
                         console.log('old service worker cleaning');
                         return caches.delete(cache);
                     }
@@ -25,9 +44,14 @@ self.addEventListener('activate', (event) => {
     )
 });
 
-//call fetch event -offline
-self.addEventListener('fetch', event => {
-    console.log('service worker is fetching');
+//call fetch event -offline - request first
+
+// self.addEventListener('fetch', requestFirst)
+
+self.addEventListener('fetch', cacheFirst)
+
+function requestFirst( event) {
+    console.log('service worker is fetching - request first approach');
     //if we are offline catch and respond form cache
     //but when we are online we make a copy of response to the cache - better way
     event.respondWith(
@@ -44,4 +68,32 @@ self.addEventListener('fetch', event => {
             return res;
         })
         .catch(() => caches.match(event.request)));
-});
+}
+
+function cacheFirst (event){
+    console.log('service worker is fetching - cache first approach');
+
+    event.respondWith(
+        caches.match(event.request)
+        .then(cacheRes =>{
+            console.log('looking for the answer');
+            return cacheRes || fetch(event.request)
+            .then(fetchRes =>{
+                caches.open(cacheName)
+                .then(cache =>{
+                    cache.put(event.request, fetchRes.clone())
+                    .catch(err => console.log("find the problem 3", err))
+                    return fetchRes;
+                })
+                .catch(err => console.log("discover problem 2",err))
+            })
+            .catch(err => console.log("discover problem 1",err))
+        })
+        .catch((err)=>{
+            console.log("cacheFirst err", err);
+            caches.match('./fallback.html')
+            .catch(err => console.log("fallback problem",err)
+            )
+        })//we are offline
+    )
+}
