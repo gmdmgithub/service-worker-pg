@@ -72,28 +72,14 @@ function requestFirst( event) {
 
 function cacheFirst (event){
     console.log('service worker is fetching - cache first approach');
-
     event.respondWith(
-        caches.match(event.request)
-        .then(cacheRes =>{
-            console.log('looking for the answer');
-            return cacheRes || fetch(event.request)
-            .then(fetchRes =>{
-                caches.open(cacheName)
-                .then(cache =>{
-                    cache.put(event.request, fetchRes.clone())
-                    .catch(err => console.log("find the problem 3", err))
-                    return fetchRes;
-                })
-                .catch(err => console.log("discover problem 2",err))
-            })
-            .catch(err => console.log("discover problem 1",err))
+    caches.match(event.request).then(cacheRes => {
+      return cacheRes || fetch(event.request).then(fetchRes => {
+        return caches.open(cacheName).then(cache => {
+          cache.put(event.request.url, fetchRes.clone());
+          return fetchRes;
         })
-        .catch((err)=>{
-            console.log("cacheFirst err", err);
-            caches.match('./fallback.html')
-            .catch(err => console.log("fallback problem",err)
-            )
-        })//we are offline
-    )
+      });
+    }).catch(() => caches.match('/fallback.html'))
+  );
 }
