@@ -8,6 +8,18 @@ const cacheAssets = [
     '/css/style.css', '/js/main.js'
 ];
 
+
+// cache size limit function
+const limitCacheSize = (name, size) => {
+    caches.open(name).then(cache => {
+      cache.keys().then(keys => {
+        if(keys.length > size){
+          cache.delete(keys[0]).then(limitCacheSize(name, size));
+        }
+      });
+    });
+  };
+
 //call install event
 self.addEventListener('install', (event) => {
     console.log('service Worker install');
@@ -64,6 +76,7 @@ function requestFirst( event) {
                 .then(cache => {
                     //adding the response to cache
                     cache.put(event.request, resClone);
+                   
                 });
             return res;
         })
@@ -76,10 +89,21 @@ function cacheFirst (event){
     caches.match(event.request).then(cacheRes => {
       return cacheRes || fetch(event.request).then(fetchRes => {
         return caches.open(cacheName).then(cache => {
-          cache.put(event.request.url, fetchRes.clone());
+            cache.put(event.request.url, fetchRes.clone());
+            console.log("cacheFirst");
+            limitCacheSize(cacheName, 2) //TODO - is two for test
           return fetchRes;
         })
       });
-    }).catch(() => caches.match('/fallback.html'))
+    }).catch(() => {
+        console.log("serving fallback page - offline");
+
+        //only url with pages (in this case html pages) should be returned 
+        // problem protect ie for the image to be serve as fallback
+        
+        if(event.request.url.indexOf(".html") >-1){
+            return caches.match('/fallback.html')
+        }
+    })
   );
 }
