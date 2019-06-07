@@ -4,6 +4,8 @@ const cacheName = 'v2';
 const staticCache = 's_v1';
 
 const cacheAssets = [
+    '/',
+    '/index.html',
     'fallback.html',
     '/css/style.css', '/js/main.js'
 ];
@@ -91,7 +93,7 @@ function cacheFirst (event){
         return caches.open(cacheName).then(cache => {
             cache.put(event.request.url, fetchRes.clone());
             console.log("cacheFirst");
-            limitCacheSize(cacheName, 2) //TODO - is two for test
+            limitCacheSize(cacheName, 15) //TODO - is two for test
           return fetchRes;
         })
       });

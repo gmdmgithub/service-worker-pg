@@ -1,0 +1,12 @@
+{
+    "name": "First Try of PWA",
+    "short_name": "PWA",
+    "start_url": "/index.html",
+    "display": "standalone",
+    "background_color": "#f4f4f4",
+    "theme_color": "#FFE1C4",
+    "orientation": "portrait-primary",
+    "icons": [
+      
+    ]
+  }
